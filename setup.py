@@ -5,10 +5,10 @@ version = '1.1.5'
 
 entry_points = {
     'openprocurement.auctions.core.plugins': [
-        'auctions.dgf = openprocurement.auctions.dgf:includeme'
+        'auctions.dutchsales = openprocurement.auctions.dutchsales:includeme'
     ],
     'openprocurement.api.migrations': [
-        'auctions = openprocurement.auctions.dgf.migration:migrate_data'
+        'auctions = openprocurement.auctions.dutchsales.migration:migrate_data'
     ]
 }
 
@@ -25,7 +25,7 @@ docs_requires = requires + [
     'sphinxcontrib-httpdomain',
 ]
 
-setup(name='openprocurement.auctions.dgf',
+setup(name='openprocurement.auctions.dutchsales',
       version=version,
       description="",
       long_description=open("README.rst").read() + "\n" +

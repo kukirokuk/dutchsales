@@ -6,10 +6,10 @@ from datetime import timedelta, datetime
 from uuid import uuid4
 
 from openprocurement.api.models import get_now
-import openprocurement.auctions.dgf.tests.base as base_test
+import openprocurement.auctions.dutchsales.tests.base as base_test
 from openprocurement.auctions.flash.tests.base import PrefixedRequestClass
-from openprocurement.auctions.dgf.tests.base import test_auction_data as base_test_auction_data, test_bids, test_financial_bids
-from openprocurement.auctions.dgf.tests.tender import BaseAuctionWebTest
+from openprocurement.auctions.dutchsales.tests.base import test_auction_data as base_test_auction_data, test_bids, test_financial_bids
+from openprocurement.auctions.dutchsales.tests.tender import BaseAuctionWebTest
 from webtest import TestApp
 
 now = datetime.now()
