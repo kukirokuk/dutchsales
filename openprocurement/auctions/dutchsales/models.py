@@ -10,15 +10,15 @@ from string import hexdigits
 from zope.interface import implementer
 from pyramid.security import Allow
 from openprocurement.api.models import (
-    BooleanType, ListType, Feature, Period, get_now, TZ, ComplaintModelType,
+    BooleanType, LotValue, Model, ListType, Feature, Period, Parameter, get_now, TZ, ComplaintModelType,
     validate_features_uniq, validate_lots_uniq, Identifier as BaseIdentifier,
-    Classification, validate_items_uniq, ORA_CODES, Address, Location,
-    schematics_embedded_role, SANDBOX_MODE,
+    Classification, validate_items_uniq, validate_parameters_uniq, ORA_CODES, Address, Location,
+    schematics_embedded_role, schematics_default_role, SANDBOX_MODE, Bid as BaseBid,
 )
 from openprocurement.api.utils import calculate_business_date
 from openprocurement.auctions.core.models import IAuction
 from openprocurement.auctions.flash.models import (
-    Auction as BaseAuction, Document as BaseDocument, Bid as BaseBid,
+    Auction as BaseAuction, Document as BaseDocument,
     Complaint as BaseComplaint, Cancellation as BaseCancellation,
     Contract as BaseContract, Award as BaseAward, Lot, edit_role,
     calc_auction_end_time, COMPLAINT_STAND_STILL_TIME,
@@ -181,18 +181,65 @@ class Document(BaseDocument):
             raise ValidationError(u'This field is required.')
 
 
+view_bid_role = (blacklist('owner_token') + schematics_default_role)
+Administrator_bid_role = whitelist('tenderers')
+
+
 class Bid(BaseBid):
+
     class Options:
         roles = {
             'create': whitelist('value', 'tenderers', 'parameters', 'lotValues', 'status', 'qualified'),
+            'embedded': view_bid_role,
+            'view': view_bid_role,
+            'auction_view': whitelist('value', 'lotValues', 'id', 'date', 'parameters', 'participationUrl', 'owner'),
+            'active.qualification': view_bid_role,
+            'active.awarded': view_bid_role,
+            'complete': view_bid_role,
+            'unsuccessful': view_bid_role,
+            'cancelled': view_bid_role,
         }
 
     status = StringType(choices=['active', 'draft', 'invalid'], default='active')
     tenderers = ListType(ModelType(Organization), required=True, min_size=1, max_size=1)
+    parameters = ListType(ModelType(Parameter), default=list(), validators=[validate_parameters_uniq])
+    lotValues = ListType(ModelType(LotValue), default=list())
     documents = ListType(ModelType(Document), default=list(), validators=[validate_disallow_dgfPlatformLegalDetails])
     qualified = BooleanType(required=True, choices=[True])
+    participationUrl = URLType()
+    owner_token = StringType()
+    owner = StringType()
 
+    def validate_participationUrl(self, data, url):
+        if url and isinstance(data['__parent__'], Model) and get_auction(data['__parent__']).lots:
+            raise ValidationError(u"url should be posted for each lot of bid")
 
+    def validate_lotValues(self, data, values):
+        if isinstance(data['__parent__'], Model):
+            auction = data['__parent__']
+            if auction.lots and not values:
+                raise ValidationError(u'This field is required.')
+
+    def validate_value(self, data, value):
+        pass
+
+    def validate_parameters(self, data, parameters):
+        if isinstance(data['__parent__'], Model):
+            auction = data['__parent__']
+            if auction.lots:
+                lots = [i.relatedLot for i in data['lotValues']]
+                items = [i.id for i in auction.items if i.relatedLot in lots]
+                codes = dict([
+                    (i.code, [x.value for x in i.enum])
+                    for i in (auction.features or [])
+                    if i.featureOf == 'tenderer' or i.featureOf == 'lot' and i.relatedItem in lots or i.featureOf == 'item' and i.relatedItem in items
+                ])
+                if set([i['code'] for i in parameters]) != set(codes):
+                    raise ValidationError(u"All features parameters is required.")
+            elif not parameters and auction.features:
+                raise ValidationError(u'This field is required.')
+            elif set([i['code'] for i in parameters]) != set([i.code for i in (auction.features or [])]):
+                raise ValidationError(u"All features parameters is required.")
 class Question(BaseQuestion):
     author = ModelType(Organization, required=True)
 

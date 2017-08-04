@@ -102,32 +102,32 @@ class AuctionBidderResourceTest(BaseAuctionWebTest):
         else:
             self.assertIn({u'description': [{u'contactPoint': [u'This field is required.'], u'identifier': {u'scheme': [u'This field is required.'], u'id': [u'This field is required.'], u'uri': [u'Not a well formed URL.']}, u'address': [u'This field is required.']}], u'location': u'body', u'name': u'tenderers'}, response.json['errors'])
 
-        if self.initial_organization == test_financial_organization:
-            response = self.app.post_json(request_path, {'data': {'tenderers': [self.initial_organization], 'qualified': True, 'eligible': True}}, status=422)
-        else:
-            response = self.app.post_json(request_path, {'data': {'tenderers': [self.initial_organization], 'qualified': True}}, status=422)
-        self.assertEqual(response.status, '422 Unprocessable Entity')
-        self.assertEqual(response.content_type, 'application/json')
-        self.assertEqual(response.json['status'], 'error')
-        self.assertIn({u'description': [u'This field is required.'], u'location': u'body', u'name': u'value'}, response.json['errors'])
+        # if self.initial_organization == test_financial_organization:
+        #     response = self.app.post_json(request_path, {'data': {'tenderers': [self.initial_organization], 'qualified': True, 'eligible': True}}, status=422)
+        # else:
+        #     response = self.app.post_json(request_path, {'data': {'tenderers': [self.initial_organization], 'qualified': True}}, status=422)
+        # self.assertEqual(response.status, '422 Unprocessable Entity')
+        # self.assertEqual(response.content_type, 'application/json')
+        # self.assertEqual(response.json['status'], 'error')
+        # self.assertIn({u'description': [u'This field is required.'], u'location': u'body', u'name': u'value'}, response.json['errors'])
 
-        if self.initial_organization == test_financial_organization:
-            response = self.app.post_json(request_path, {'data': {'tenderers': [self.initial_organization], "value": {"amount": 500, 'valueAddedTaxIncluded': False}, 'qualified': True, 'eligible': True}}, status=422)
-        else:
-            response = self.app.post_json(request_path, {'data': {'tenderers': [self.initial_organization], "value": {"amount": 500, 'valueAddedTaxIncluded': False}, 'qualified': True}}, status=422)
-        self.assertEqual(response.status, '422 Unprocessable Entity')
-        self.assertEqual(response.content_type, 'application/json')
-        self.assertEqual(response.json['status'], 'error')
-        self.assertIn({u'description': [u'valueAddedTaxIncluded of bid should be identical to valueAddedTaxIncluded of value of auction'], u'location': u'body', u'name': u'value'}, response.json['errors'])
+        # if self.initial_organization == test_financial_organization:
+        #     response = self.app.post_json(request_path, {'data': {'tenderers': [self.initial_organization], "value": {"amount": 500, 'valueAddedTaxIncluded': False}, 'qualified': True, 'eligible': True}}, status=422)
+        # else:
+        #     response = self.app.post_json(request_path, {'data': {'tenderers': [self.initial_organization], "value": {"amount": 500, 'valueAddedTaxIncluded': False}, 'qualified': True}}, status=422)
+        # self.assertEqual(response.status, '422 Unprocessable Entity')
+        # self.assertEqual(response.content_type, 'application/json')
+        # self.assertEqual(response.json['status'], 'error')
+        # self.assertIn({u'description': [u'valueAddedTaxIncluded of bid should be identical to valueAddedTaxIncluded of value of auction'], u'location': u'body', u'name': u'value'}, response.json['errors'])
 
-        if self.initial_organization == test_financial_organization:
-            response = self.app.post_json(request_path, {'data': {'tenderers': [self.initial_organization], "value": {"amount": 500, 'currency': "USD"}, 'qualified': True, 'eligible': True}}, status=422)
-        else:
-            response = self.app.post_json(request_path, {'data': {'tenderers': [self.initial_organization], "value": {"amount": 500, 'currency': "USD"}, 'qualified': True}}, status=422)
-        self.assertEqual(response.status, '422 Unprocessable Entity')
-        self.assertEqual(response.content_type, 'application/json')
-        self.assertEqual(response.json['status'], 'error')
-        self.assertIn({u'description': [u'currency of bid should be identical to currency of value of auction'], u'location': u'body', u'name': u'value'}, response.json['errors'])
+        # if self.initial_organization == test_financial_organization:
+        #     response = self.app.post_json(request_path, {'data': {'tenderers': [self.initial_organization], "value": {"amount": 500, 'currency': "USD"}, 'qualified': True, 'eligible': True}}, status=422)
+        # else:
+        #     response = self.app.post_json(request_path, {'data': {'tenderers': [self.initial_organization], "value": {"amount": 500, 'currency': "USD"}, 'qualified': True}}, status=422)
+        # self.assertEqual(response.status, '422 Unprocessable Entity')
+        # self.assertEqual(response.content_type, 'application/json')
+        # self.assertEqual(response.json['status'], 'error')
+        # self.assertIn({u'description': [u'currency of bid should be identical to currency of value of auction'], u'location': u'body', u'name': u'value'}, response.json['errors'])
 
         if self.initial_organization == test_financial_organization:
             response = self.app.post_json(request_path, {'data': {'tenderers': self.initial_organization, "value": {"amount": 500}, 'qualified': True, 'eligible': True}}, status=422)
@@ -192,13 +192,13 @@ class AuctionBidderResourceTest(BaseAuctionWebTest):
         self.assertEqual(response.status, '201 Created')
         self.assertEqual(response.content_type, 'application/json')
         bidder = response.json['data']
-        response = self.app.patch_json('/auctions/{}/bids/{}'.format(self.auction_id, bidder['id']), {"data": {"value": {"amount": 60}}}, status=422)
-        self.assertEqual(response.status, '422 Unprocessable Entity')
-        self.assertEqual(response.content_type, 'application/json')
-        self.assertEqual(response.json['status'], 'error')
-        self.assertEqual(response.json['errors'], [
-            {u'description': [u'value of bid should be greater than value of auction'], u'location': u'body', u'name': u'value'}
-        ])
+        # response = self.app.patch_json('/auctions/{}/bids/{}'.format(self.auction_id, bidder['id']), {"data": {"value": {"amount": 60}}}, status=422)
+        # self.assertEqual(response.status, '422 Unprocessable Entity')
+        # self.assertEqual(response.content_type, 'application/json')
+        # self.assertEqual(response.json['status'], 'error')
+        # self.assertEqual(response.json['errors'], [
+        #     {u'description': [u'value of bid should be greater than value of auction'], u'location': u'body', u'name': u'value'}
+        # ])
 
         response = self.app.patch_json('/auctions/{}/bids/{}'.format(self.auction_id, bidder['id']), {"data": {'tenderers': [{"name": u"Державне управління управлінням справами"}]}})
         self.assertEqual(response.status, '200 OK')
@@ -262,10 +262,10 @@ class AuctionBidderResourceTest(BaseAuctionWebTest):
     def test_get_auction_bidder(self):
         if self.initial_organization == test_financial_organization:
             response = self.app.post_json('/auctions/{}/bids'.format(
-                self.auction_id), {'data': {'tenderers': [self.initial_organization], "value": {"amount": 500}, 'qualified': True, 'eligible': True}})
+                self.auction_id), {'data': {'tenderers': [self.initial_organization], 'qualified': True, 'eligible': True}})
         else:
             response = self.app.post_json('/auctions/{}/bids'.format(
-                self.auction_id), {'data': {'tenderers': [self.initial_organization], "value": {"amount": 500}, 'qualified': True}})
+                self.auction_id), {'data': {'tenderers': [self.initial_organization], 'qualified': True}})
         self.assertEqual(response.status, '201 Created')
         self.assertEqual(response.content_type, 'application/json')
         bidder = response.json['data']
