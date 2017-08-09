@@ -240,6 +240,23 @@ class Bid(BaseBid):
                 raise ValidationError(u'This field is required.')
             elif set([i['code'] for i in parameters]) != set([i.code for i in (auction.features or [])]):
                 raise ValidationError(u"All features parameters is required.")
+
+    @serializable(serialized_name="participationUrl", serialize_when_none=False)
+    def participation_url(self):
+        root = self.__parent__
+        auction_id = root.id
+        bidder_id = self.id
+        parents = []
+        while root.__parent__ is not None:
+            parents[0:0] = [root]
+            root = root.__parent__
+        request = root.request
+        auction_url = request.registry.auction_module_url
+        auction_hash = request.registry.auction_hash
+        participation_url = '{}/auctions/{}/login?bidder_id={}&hash={}'.format(auction_url, auction_id, bidder_id, auction_hash)
+        return participation_url
+
+
 class Question(BaseQuestion):
     author = ModelType(Organization, required=True)
 

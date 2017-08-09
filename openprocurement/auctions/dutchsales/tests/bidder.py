@@ -280,6 +280,8 @@ class AuctionBidderResourceTest(BaseAuctionWebTest):
         self.assertEqual(response.status, '200 OK')
         self.assertEqual(response.content_type, 'application/json')
         self.assertEqual(response.json['data'], bidder)
+        bidder_data = response.json['data']
+        self.assertIn(u'participationUrl', bidder_data)
 
         self.set_status('active.qualification')
 
