@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 import unittest
 from copy import deepcopy
-
+from urllib import unquote
+from base64 import b64decode
+from libnacl.sign import Signer, Verifier
 from openprocurement.auctions.dutchsales.tests.base import BaseAuctionWebTest, test_auction_data, test_features_auction_data, test_financial_organization, test_financial_auction_data
 
 
@@ -282,6 +284,12 @@ class AuctionBidderResourceTest(BaseAuctionWebTest):
         self.assertEqual(response.json['data'], bidder)
         bidder_data = response.json['data']
         self.assertIn(u'participationUrl', bidder_data)
+        signature = bidder_data['participationUrl']
+        before, sep, sig = signature.partition('signature=')
+        sig = b64decode(unquote(sig))
+        signer = Signer('fe3b3b5999a08e68dfe62687c2ae147f62712ceace58c1ffca8ea819eabcb5d1'.decode('hex'))
+        ver = Verifier(signer.hex_vk())
+        verified = ver.verify(sig + str(bidder['id']))
 
         self.set_status('active.qualification')
 

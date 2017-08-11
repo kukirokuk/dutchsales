@@ -28,7 +28,9 @@ from openprocurement.auctions.flash.models import (
 )
 from schematics_flexible.schematics_flexible import FlexibleModelType
 from openprocurement.schemas.dgf.schemas_store import SchemaStore
-
+from urllib import quote
+from base64 import b64encode
+from libnacl.sign import Signer
 
 def read_json(name):
     import os.path
@@ -252,9 +254,10 @@ class Bid(BaseBid):
             root = root.__parent__
         request = root.request
         auction_url = request.registry.auction_module_url
-        auction_hash = request.registry.auction_hash
-        participation_url = '{}/auctions/{}/login?bidder_id={}&hash={}'.format(auction_url, auction_id, bidder_id, auction_hash)
-        return participation_url
+        signature = quote(b64encode(request.registry.signer.signature(bidder_id)))
+        participation_url = '{}/auctions/{}/login?bidder_id={}&signature={}'.format(auction_url, auction_id, bidder_id, signature)
+        if not self.participationUrl:
+            return participation_url
 
 
 class Question(BaseQuestion):
