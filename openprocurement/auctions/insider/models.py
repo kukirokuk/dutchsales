@@ -10,7 +10,7 @@ from string import hexdigits
 from zope.interface import implementer
 from pyramid.security import Allow
 from openprocurement.api.models import (
-    BooleanType, LotValue, Model, ListType, Feature, Period, Parameter, get_now, TZ, ComplaintModelType,
+    BooleanType, LotValue, Value, Model, ListType, Feature, Period, Parameter, get_now, TZ, ComplaintModelType,
     validate_features_uniq, validate_lots_uniq, Identifier as BaseIdentifier,
     Classification, validate_items_uniq, validate_parameters_uniq, ORA_CODES, Address, Location,
     schematics_embedded_role, schematics_default_role, SANDBOX_MODE, Bid as BaseBid,
@@ -201,16 +201,11 @@ class Bid(BaseBid):
             'unsuccessful': view_bid_role,
             'cancelled': view_bid_role,
         }
-
-    status = StringType(choices=['active', 'draft', 'invalid'], default='active')
-    tenderers = ListType(ModelType(Organization), required=True, min_size=1, max_size=1)
-    parameters = ListType(ModelType(Parameter), default=list(), validators=[validate_parameters_uniq])
-    lotValues = ListType(ModelType(LotValue), default=list())
+    value = ModelType(Value)
     documents = ListType(ModelType(Document), default=list(), validators=[validate_disallow_dgfPlatformLegalDetails])
+    status = StringType(choices=['active', 'draft', 'invalid'], default='active')
     qualified = BooleanType(required=True, choices=[True])
-    participationUrl = URLType()
     owner_token = StringType()
-    owner = StringType()
 
     def validate_participationUrl(self, data, url):
         if url and isinstance(data['__parent__'], Model) and get_auction(data['__parent__']).lots:
@@ -223,7 +218,21 @@ class Bid(BaseBid):
                 raise ValidationError(u'This field is required.')
 
     def validate_value(self, data, value):
-        pass
+        if isinstance(data['__parent__'], Model):
+            auction = data['__parent__']
+            if auction.lots:
+                if value:
+                    raise ValidationError(u"value should be posted for each lot of bid")
+            else:
+                if not value:
+                    return
+                if auction.value.amount > value.amount:
+                    raise ValidationError(u"value of bid should be greater than value of auction")
+                if auction.get('value').currency != value.currency:
+                    raise ValidationError(u"currency of bid should be identical to currency of value of auction")
+                if auction.get('value').valueAddedTaxIncluded != value.valueAddedTaxIncluded:
+                    raise ValidationError(u"valueAddedTaxIncluded of bid should be identical to valueAddedTaxIncluded of value of auction")
+
 
     def validate_parameters(self, data, parameters):
         if isinstance(data['__parent__'], Model):
