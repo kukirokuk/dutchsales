@@ -312,12 +312,6 @@ class AuctionBidderResourceTest(BaseAuctionWebTest):
         self.assertEqual(response.json['data'], bidder)
         bidder_data = response.json['data']
         self.assertIn(u'participationUrl', bidder_data)
-        signature = bidder_data['participationUrl']
-        before, sep, sig = signature.partition('signature=')
-        sig = b64decode(unquote(sig))
-        signer = Signer('fe3b3b5999a08e68dfe62687c2ae147f62712ceace58c1ffca8ea819eabcb5d1'.decode('hex'))
-        ver = Verifier(signer.hex_vk())
-        verified = ver.verify(sig + str(bidder['id']))
 
         self.set_status('active.qualification')
 
@@ -351,6 +345,22 @@ class AuctionBidderResourceTest(BaseAuctionWebTest):
         self.assertEqual(response.status, '403 Forbidden')
         self.assertEqual(response.content_type, 'application/json')
         self.assertEqual(response.json['errors'][0]["description"], "Can't delete bid in current (active.qualification) auction status")
+
+    def test_bid_id_signature_verified(self):
+        if self.initial_organization == test_financial_organization:
+            response = self.app.post_json('/auctions/{}/bids'.format(
+                self.auction_id), {'data': {'tenderers': [self.initial_organization], 'qualified': True, 'eligible': True}})
+        else:
+            response = self.app.post_json('/auctions/{}/bids'.format(
+                self.auction_id), {'data': {'tenderers': [self.initial_organization], 'qualified': True}})
+        bidder = response.json['data']
+        signature = bidder['participationUrl']
+        before, sep, sig = signature.partition('signature=')
+        sig = b64decode(unquote(sig))
+        signer = Signer('fe3b3b5999a08e68dfe62687c2ae147f62712ceace58c1ffca8ea819eabcb5d1'.decode('hex'))
+        ver = Verifier(signer.hex_vk())
+        verified = ver.verify(sig + str(bidder['id']))
+        self.assertEqual(verified, bidder['id'])
 
     def test_delete_auction_bidder(self):
         if self.initial_organization == test_financial_organization:
