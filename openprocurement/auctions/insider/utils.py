@@ -89,7 +89,7 @@ def check_status(request):
         auction.status = 'active.auction'
         remove_draft_bids(request)
         check_bids(request)
-        if auction.numberOfBids < 2 and auction.auctionPeriod:
+        if 1:
             auction.auctionPeriod.startDate = None
         return
     elif auction.lots and auction.status == 'active.tendering' and auction.tenderPeriod.endDate <= now:
@@ -98,7 +98,7 @@ def check_status(request):
         auction.status = 'active.auction'
         remove_draft_bids(request)
         check_bids(request)
-        [setattr(i.auctionPeriod, 'startDate', None) for i in auction.lots if i.numberOfBids < 2 and i.auctionPeriod]
+        [setattr(i.auctionPeriod, 'startDate', None) for i in auction.lots if 1]
         return
     elif not auction.lots and auction.status == 'active.awarded':
         standStillEnds = [
